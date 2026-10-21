@@ -1,0 +1,15 @@
+# macOS system files
+.DS_Store
+
+# Karabiner automatic backups
+karabiner/.config/karabiner/automatic_backups/
+
+# Herdr runtime files (if ever created inside repo)
+herdr/.config/herdr/*.log
+herdr/.config/herdr/*.sock*
+herdr/.config/herdr/.plugins.lock
+herdr/.config/herdr/session*.json
+herdr/.config/herdr/session-snapshots/
+
+# Pre-stow backup snapshots
+.backups/

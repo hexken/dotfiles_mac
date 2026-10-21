@@ -1,0 +1,113 @@
+onboarding = false
+
+[terminal]
+new_cwd = "follow"
+
+[ui]
+status_indicators = "symbols"
+prompt_new_tab_name = false
+pane_scrollbars = false
+pane_gaps = false
+pane_outer_borders = false
+show_agent_labels_on_pane_borders = true
+
+[ui.toast]
+delivery = "off"
+
+[ui.sound]
+enabled = true
+
+[theme]
+name = "catppuccin"
+auto_switch = false
+
+[session]
+resume_agents_on_restore = true
+
+[experimental]
+pane_history = true
+
+[keys]
+# Prefix key (frees up Ctrl+b for Vim/copy-mode PageUp)
+prefix = "ctrl+a"
+
+# --- Pane Navigation (Cmd+h/j/k/l via WezTerm, or Prefix+h/j/k/l) ---
+focus_pane_left     = ["prefix+h", "ctrl+alt+h"]
+focus_pane_down     = ["prefix+j", "ctrl+alt+j"]
+focus_pane_up       = ["prefix+k", "ctrl+alt+k"]
+focus_pane_right    = ["prefix+l", "ctrl+alt+l"]
+last_pane           = ["prefix+;", "ctrl+alt+a"]
+cycle_pane_next     = "prefix+tab"
+cycle_pane_previous = "prefix+shift+tab"
+
+# --- Splits, Zoom & Pane Lifecycle ---
+# Cmd+d = split right | Cmd+Shift+d = split down | Cmd+z / Cmd+Enter = zoom | Cmd+w = close pane
+split_vertical   = ["prefix+v", "prefix+backslash", "ctrl+alt+d"]
+split_horizontal = ["prefix+minus", "ctrl+alt+s"]
+zoom             = ["prefix+z", "ctrl+alt+z"]
+close_pane       = ["prefix+x", "ctrl+alt+w"]
+rename_pane      = "prefix+shift+p"
+edit_scrollback  = "prefix+e"
+clear_pane       = "prefix+ctrl+l"
+
+# --- Pane Resizing (Cmd+Arrows via WezTerm, or Prefix+r for interactive resize mode) ---
+resize_mode       = "prefix+r"
+resize_pane_left  = "ctrl+alt+left"
+resize_pane_down  = "ctrl+alt+down"
+resize_pane_up    = "ctrl+alt+up"
+resize_pane_right = "ctrl+alt+right"
+
+# --- Tabs (Cmd+t new, Cmd+[/] prev/next, Cmd+1..9 jump) ---
+new_tab           = ["prefix+c", "ctrl+alt+t"]
+previous_tab      = ["prefix+p", "ctrl+alt+p"]
+next_tab          = ["prefix+n", "ctrl+alt+n"]
+switch_tab        = ["prefix+1..9", "alt+1..9"]
+rename_tab        = "prefix+shift+t"
+close_tab         = "prefix+shift+x"
+move_tab_previous = "alt+shift+left"
+move_tab_next     = "alt+shift+right"
+
+# --- Workspaces, Agents & Sidebar (Cmd+g Goto picker, Cmd+b Sidebar, Cmd+Shift+[/] Cycle Workspaces) ---
+goto                     = ["prefix+g", "ctrl+alt+g"]
+workspace_picker         = "prefix+w"
+toggle_sidebar           = ["prefix+b", "ctrl+alt+b"]
+open_notification_target = ["prefix+o", "ctrl+alt+o"]
+previous_agent           = "prefix+,"
+next_agent               = "prefix+."
+focus_agent              = "prefix+alt+1..9"
+previous_workspace       = ["prefix+ctrl+k", "prefix+up", "ctrl+alt+e"]
+next_workspace           = ["prefix+ctrl+j", "prefix+down", "ctrl+alt+f"]
+switch_workspace         = "prefix+shift+1..9"
+new_workspace            = "prefix+shift+n"
+rename_workspace         = "prefix+shift+w"
+close_workspace          = "prefix+shift+d"
+new_worktree             = "prefix+shift+g"
+
+# --- Navigate Mode (Ctrl+a then w): use j/k to move up/down workspaces in sidebar ---
+navigate_workspace_up   = "k"
+navigate_workspace_down = "j"
+navigate_pane_up        = "up"
+navigate_pane_down      = "down"
+
+# --- System & Help ---
+help          = "prefix+?"
+settings      = "prefix+s"
+detach        = "prefix+q"
+reload_config = "prefix+shift+r"
+
+# --- Floating Popups (don't disturb your split layout) ---
+[[keys.command]]
+key = ["prefix+u", "ctrl+alt+u"]
+type = "popup"
+command = "lazygit"
+description = "open lazygit popup"
+width = "85%"
+height = "85%"
+
+[[keys.command]]
+key = ["prefix+t", "ctrl+alt+y"]
+type = "popup"
+command = "exec \"${SHELL:-zsh}\""
+description = "open scratch terminal popup"
+width = "80%"
+height = "80%"

@@ -1,0 +1,85 @@
+[user]
+	name = Ken Tjhia
+	email = ken.tjhia@gmail.com
+
+[includeIf "gitdir:~/work/"]
+	path = ~/.gitconfig-work
+
+[includeIf "gitdir:~/Dev/work/"]
+	path = ~/.gitconfig-work
+
+[includeIf "gitdir:~/Developer/work/"]
+	path = ~/.gitconfig-work
+
+[include]
+	path = ~/.gitconfig.local
+
+[core]
+  editor = nvim
+  pager = delta
+  excludeFiles = "~/.gitignore"
+
+[push]
+  default = current
+	autoSetupRemote = true
+  followtags = true
+
+[pull]
+	ff = only
+
+[diff]
+	algorithm = histogram
+  tool = meld
+  context = 10
+
+[rebase]
+  autosquash = true
+
+[init]
+  defaultBranch = main
+
+[commit]
+  verbose = true
+
+[help]
+  autocorrect = prompt
+
+[merge]
+  conflictstyle = zdiff3
+  tool = meld
+
+[alias]
+  lg = log --graph --pretty=format:'%Cred%h%Creset - %s %Cgreen(%ar) %C(bold blue)[%an]%Creset%C(yellow)%d%Creset' --abbrev-commit
+  # Difftastic aliases (use when needed)
+  ddiff = -c diff.external=difft diff
+  dlog  = -c diff.external=difft log -p --ext-diff
+  dshow = -c diff.external=difft show --ext-diff
+  dft   = -c diff.external=difft diff
+
+[difftool]
+  prompt = false
+
+[difftool "difftastic"]
+  cmd = difft "$LOCAL" "$REMOTE"
+
+[pager]
+  difftool = true
+
+
+[transfer]                                                                    
+  fsckobjects = true
+
+[fetch]
+  fsckobjects = true
+	prune = true
+
+[receive]
+  fsckobjects = true
+
+[url "git@github.com:"]
+	insteadOf = "https://github.com/"
+
+[credential]
+	helper = cache
+[rerere]
+	enabled = true

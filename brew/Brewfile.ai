@@ -1,0 +1,26 @@
+# Tier 3: AI & LLM tools (may be restricted on some client machines)
+
+tap "can1357/tap"
+
+# LLM inference in C/C++
+brew "llama.cpp"
+# Coding agent with the IDE wired in
+brew "can1357/tap/omp", trusted: true
+
+# Agent orchestration platform
+cask "antigravity"
+# Terminal interface for Antigravity agents
+cask "antigravity-cli"
+# AI Coding Agent IDE
+cask "antigravity-ide"
+# OpenAI's official ChatGPT desktop app
+cask "chatgpt"
+# OpenAI's coding agent that runs in your terminal
+cask "codex"
+# Write, edit, and chat about your code with AI
+cask "cursor"
+# Dictation tool including LLM reformatting
+cask "superwhisper"
+
+# Hugging Face CLI via uv
+uv "huggingface-hub[cli]"

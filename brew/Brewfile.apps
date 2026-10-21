@@ -1,0 +1,28 @@
+# Tier 2: macOS desktop utilities, productivity apps, browsers & containers
+
+# App to build and share containerised applications and microservices
+cask "docker-desktop"
+# Web browser
+cask "firefox"
+# Web browser
+cask "google-chrome"
+# Desktop automation application
+cask "hammerspoon"
+# Keyboard customiser
+cask "karabiner-elements"
+# Tool to prevent the system from going into sleep mode
+cask "keepingyouawake"
+# Visual diff and merge tool
+cask "meld"
+# Tool to control external monitor brightness & volume
+cask "monitorcontrol"
+# No Nonsense Neovim Client in Rust
+brew "neovide"
+# Knowledge base that works on top of a local folder of plain text Markdown files
+cask "obsidian"
+# Control your tools with a few keystrokes
+cask "raycast"
+# System monitor for the menu bar
+cask "stats"
+# Open-source code editor
+cask "visual-studio-code"
