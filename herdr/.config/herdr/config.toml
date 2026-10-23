@@ -32,51 +32,51 @@ pane_history = true
 prefix = "ctrl+a"
 
 # --- Pane Navigation (Cmd+h/j/k/l via WezTerm, or Prefix+h/j/k/l) ---
-focus_pane_left     = ["prefix+h", "ctrl+alt+h"]
-focus_pane_down     = ["prefix+j", "ctrl+alt+j"]
-focus_pane_up       = ["prefix+k", "ctrl+alt+k"]
-focus_pane_right    = ["prefix+l", "ctrl+alt+l"]
-last_pane           = ["prefix+;", "ctrl+alt+a"]
+focus_pane_left     = "prefix+h"
+focus_pane_down     = "prefix+j"
+focus_pane_up       = "prefix+k"
+focus_pane_right    = "prefix+l"
+last_pane           = "prefix+;"
 cycle_pane_next     = "prefix+tab"
 cycle_pane_previous = "prefix+shift+tab"
 
 # --- Splits, Zoom & Pane Lifecycle ---
 # Cmd+d = split right | Cmd+Shift+d = split down | Cmd+z / Cmd+Enter = zoom | Cmd+w = close pane
-split_vertical   = ["prefix+v", "prefix+backslash", "ctrl+alt+d"]
-split_horizontal = ["prefix+minus", "ctrl+alt+s"]
-zoom             = ["prefix+z", "ctrl+alt+z"]
-close_pane       = ["prefix+x", "ctrl+alt+w"]
+split_vertical   = ["prefix+v", "prefix+backslash"]
+split_horizontal = "prefix+minus"
+zoom             = "prefix+z"
+close_pane       = "prefix+x"
 rename_pane      = "prefix+shift+p"
 edit_scrollback  = "prefix+e"
 clear_pane       = "prefix+ctrl+l"
 
 # --- Pane Resizing (Cmd+Arrows via WezTerm, or Prefix+r for interactive resize mode) ---
 resize_mode       = "prefix+r"
-resize_pane_left  = "ctrl+alt+left"
-resize_pane_down  = "ctrl+alt+down"
-resize_pane_up    = "ctrl+alt+up"
-resize_pane_right = "ctrl+alt+right"
+resize_pane_left  = "prefix+left"
+resize_pane_down  = "prefix+down"
+resize_pane_up    = "prefix+up"
+resize_pane_right = "prefix+right"
 
 # --- Tabs (Cmd+t new, Cmd+[/] prev/next, Cmd+1..9 jump) ---
-new_tab           = ["prefix+c", "ctrl+alt+t"]
-previous_tab      = ["prefix+p", "ctrl+alt+p"]
-next_tab          = ["prefix+n", "ctrl+alt+n"]
-switch_tab        = ["prefix+1..9", "alt+1..9"]
+new_tab           = "prefix+c"
+previous_tab      = "prefix+p"
+next_tab          = "prefix+n"
+switch_tab        = "prefix+1..9"
 rename_tab        = "prefix+shift+t"
 close_tab         = "prefix+shift+x"
 move_tab_previous = "alt+shift+left"
 move_tab_next     = "alt+shift+right"
 
 # --- Workspaces, Agents & Sidebar (Cmd+g Goto picker, Cmd+b Sidebar, Cmd+Shift+[/] Cycle Workspaces) ---
-goto                     = ["prefix+g", "ctrl+alt+g"]
+goto                     = "prefix+g"
 workspace_picker         = "prefix+w"
-toggle_sidebar           = ["prefix+b", "ctrl+alt+b"]
-open_notification_target = ["prefix+o", "ctrl+alt+o"]
+toggle_sidebar           = "prefix+b"
+open_notification_target = "prefix+o"
 previous_agent           = "prefix+,"
 next_agent               = "prefix+."
 focus_agent              = "prefix+alt+1..9"
-previous_workspace       = ["prefix+ctrl+k", "prefix+up", "ctrl+alt+e"]
-next_workspace           = ["prefix+ctrl+j", "prefix+down", "ctrl+alt+f"]
+previous_workspace       = ["prefix+ctrl+k", "prefix+{"]
+next_workspace           = ["prefix+ctrl+j", "prefix+}"]
 switch_workspace         = "prefix+shift+1..9"
 new_workspace            = "prefix+shift+n"
 rename_workspace         = "prefix+shift+w"
@@ -97,7 +97,7 @@ reload_config = "prefix+shift+r"
 
 # --- Floating Popups (don't disturb your split layout) ---
 [[keys.command]]
-key = ["prefix+u", "ctrl+alt+u"]
+key = "prefix+u"
 type = "popup"
 command = "lazygit"
 description = "open lazygit popup"
@@ -105,9 +105,10 @@ width = "85%"
 height = "85%"
 
 [[keys.command]]
-key = ["prefix+t", "ctrl+alt+y"]
+key = "prefix+t"
 type = "popup"
 command = "exec \"${SHELL:-zsh}\""
 description = "open scratch terminal popup"
 width = "80%"
 height = "80%"
+

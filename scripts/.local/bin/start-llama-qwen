@@ -1,0 +1,46 @@
+#!/bin/bash
+set -euo pipefail
+
+MODEL_PATH="/Users/ktjhia/models/Qwen3.5-9B-Q8_0.gguf"
+LOG_PATH="/Users/ktjhia/models/llama-server.log"
+
+REASONING_ARGS=("--reasoning-budget" "0")
+FOREGROUND=0
+
+for arg in "$@"; do
+  case "$arg" in
+  --foreground)
+    FOREGROUND=1
+    ;;
+  --think)
+    REASONING_ARGS=("--reasoning-budget" "-1")
+    ;;
+  esac
+done
+
+SERVER_CMD=(
+  /opt/homebrew/bin/llama-server
+  -m "$MODEL_PATH"
+  --host 127.0.0.1
+  --port 8080
+  -ngl 99
+  -fa on
+  -c 262144
+  "${REASONING_ARGS[@]}"
+)
+
+if [[ "$FOREGROUND" -eq 1 ]]; then
+  mkdir -p "$(dirname "$LOG_PATH")"
+  exec "${SERVER_CMD[@]}" >>"$LOG_PATH" 2>&1
+fi
+
+if pgrep -x "llama-server" >/dev/null; then
+  echo "llama-server is already running."
+  exit 0
+fi
+
+echo "Starting llama-server with Qwen 3.5 9B (Q8_0, 262k context, Metal GPU)..."
+mkdir -p "$(dirname "$LOG_PATH")"
+nohup "${SERVER_CMD[@]}" >"$LOG_PATH" 2>&1 &
+
+echo "llama-server started (PID: $!). Logs at $LOG_PATH"

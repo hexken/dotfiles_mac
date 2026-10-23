@@ -1,0 +1,7 @@
+#!/bin/bash
+if pgrep -x "llama-server" > /dev/null; then
+    pkill -x "llama-server"
+    echo "llama-server stopped."
+else
+    echo "llama-server is not running."
+fi

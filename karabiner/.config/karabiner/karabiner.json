@@ -183,6 +183,14 @@
                         "description": "Mac OSX: disable cmd + h to prevent minimising an application window",
                         "manipulators": [
                             {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": [
+                                            "^com\\.github\\.wez\\.wezterm$"
+                                        ],
+                                        "type": "frontmost_application_unless"
+                                    }
+                                ],
                                 "from": {
                                     "key_code": "h",
                                     "modifiers": { "mandatory": ["command"] }

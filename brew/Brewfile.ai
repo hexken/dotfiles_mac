@@ -19,8 +19,8 @@ cask "chatgpt"
 cask "codex"
 # Write, edit, and chat about your code with AI
 cask "cursor"
-# Dictation tool including LLM reformatting
-cask "superwhisper"
+# Dictation and transcription app with AI-powered editing
+cask "spokenly"
 
 # Hugging Face CLI via uv
 uv "huggingface-hub[cli]"
