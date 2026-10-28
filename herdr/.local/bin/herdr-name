@@ -1,0 +1,48 @@
+#!/bin/bash
+# Name a Herdr agent and remember the name across Herdr restarts.
+# The SessionStart hook ~/.claude/hooks/herdr-restore-name.sh reapplies it on resume.
+#
+# usage: herdr-name <name> [pane-id]     name the agent (default: this pane)
+#        herdr-name --clear [pane-id]    remove the name
+#        herdr-name --list               show remembered names
+
+set -euo pipefail
+
+names_file="$HOME/.config/herdr/agent-names.tsv"
+touch "$names_file"
+
+case "${1:-}" in
+  ""|-h|--help)
+    sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'
+    exit 0
+    ;;
+  --list)
+    column -t -s $'\t' "$names_file"
+    exit 0
+    ;;
+esac
+
+name="$1"
+pane="${2:-${HERDR_PANE_ID:-}}"
+[ -n "$pane" ] || { echo "herdr-name: no pane id given and not inside a Herdr pane" >&2; exit 1; }
+
+session_id="$(herdr agent get "$pane" | jq -r '.result.agent.agent_session.value // empty')"
+[ -n "$session_id" ] || { echo "herdr-name: no agent session found in pane $pane" >&2; exit 1; }
+
+if [ "$name" = "--clear" ]; then
+  herdr agent rename "$pane" --clear >/dev/null
+else
+  herdr agent rename "$pane" "$name" >/dev/null
+fi
+
+# Drop any old entry for this session, and any other session holding the same name.
+tmp="$(mktemp)"
+awk -F'\t' -v s="$session_id" -v n="$name" '$1 != s && $2 != n' "$names_file" >"$tmp"
+[ "$name" = "--clear" ] || printf '%s\t%s\n' "$session_id" "$name" >>"$tmp"
+mv "$tmp" "$names_file"
+
+if [ "$name" = "--clear" ]; then
+  echo "cleared name for $pane"
+else
+  echo "$pane -> $name"
+fi

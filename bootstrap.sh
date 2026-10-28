@@ -30,7 +30,8 @@ STOW_PACKAGES=(
   "git|~/.gitconfig"
   "wezterm|~/.wezterm.lua"
   "starship|~/.config/starship.toml"
-  "herdr|~/.config/herdr/config.toml (no-folding)"
+  "herdr|~/.config/herdr/config.toml, ~/.local/bin/herdr-name (no-folding)"
+  "claude|~/.claude/CLAUDE.md, settings.json, hooks (no-folding)"
   "nvim|~/.config/nvim (LazyVim)"
   "tmux|~/.config/tmux/tmux.conf"
   "karabiner|~/.config/karabiner"
@@ -532,8 +533,23 @@ if (( ${#FINAL_STOW_PKGS[@]} > 0 )); then
         ;;
       herdr)
         mkdir -p "$HOME/.config/herdr"
+        mkdir -p "$HOME/.local/bin"
         backup_if_real_file "$HOME/.config/herdr/config.toml"
+        backup_if_real_file "$HOME/.local/bin/herdr-name"
+        chmod +x "$DOTFILES_DIR/herdr/.local/bin/"* 2>/dev/null || true
         stow -d "$DOTFILES_DIR" -t "$HOME" --no-folding --restow herdr
+        ;;
+      claude)
+        mkdir -p "$HOME/.claude/hooks"
+        backup_if_real_file "$HOME/.claude/CLAUDE.md"
+        backup_if_real_file "$HOME/.claude/settings.json"
+        backup_if_real_file "$HOME/.claude/hooks/herdr-restore-name.sh"
+        chmod +x "$DOTFILES_DIR/claude/.claude/hooks/"* 2>/dev/null || true
+        stow -d "$DOTFILES_DIR" -t "$HOME" --no-folding --restow claude
+        # herdr-agent-state.sh is owned by Herdr's integration, not tracked here
+        if command -v herdr >/dev/null 2>&1; then
+          herdr integration install claude >/dev/null 2>&1 || warn "herdr integration install claude failed"
+        fi
         ;;
       nvim)
         mkdir -p "$HOME/.config"
