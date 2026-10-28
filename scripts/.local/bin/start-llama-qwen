@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-MODEL_PATH="/Users/ktjhia/models/Qwen3.5-9B-Q8_0.gguf"
-LOG_PATH="/Users/ktjhia/models/llama-server.log"
+MODEL_PATH="$HOME/models/Qwen3.5-9B-Q8_0.gguf"
+LOG_PATH="$HOME/models/llama-server.log"
 
 REASONING_ARGS=("--reasoning-budget" "0")
 FOREGROUND=0
