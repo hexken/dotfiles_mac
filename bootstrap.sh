@@ -31,7 +31,7 @@ STOW_PACKAGES=(
   "wezterm|~/.wezterm.lua"
   "starship|~/.config/starship.toml"
   "herdr|~/.config/herdr/config.toml, ~/.local/bin/herdr-name (no-folding)"
-  "claude|~/.claude/CLAUDE.md, settings.json, hooks (no-folding)"
+  "claude|~/.claude/CLAUDE.md, settings.json, hooks, skills (no-folding)"
   "nvim|~/.config/nvim (LazyVim)"
   "tmux|~/.config/tmux/tmux.conf"
   "karabiner|~/.config/karabiner"
@@ -540,10 +540,11 @@ if (( ${#FINAL_STOW_PKGS[@]} > 0 )); then
         stow -d "$DOTFILES_DIR" -t "$HOME" --no-folding --restow herdr
         ;;
       claude)
-        mkdir -p "$HOME/.claude/hooks"
+        mkdir -p "$HOME/.claude/hooks" "$HOME/.claude/skills"
         backup_if_real_file "$HOME/.claude/CLAUDE.md"
         backup_if_real_file "$HOME/.claude/settings.json"
         backup_if_real_file "$HOME/.claude/hooks/herdr-restore-name.sh"
+        backup_if_real_file "$HOME/.claude/skills/dotfiles/SKILL.md"
         chmod +x "$DOTFILES_DIR/claude/.claude/hooks/"* 2>/dev/null || true
         stow -d "$DOTFILES_DIR" -t "$HOME" --no-folding --restow claude
         # herdr-agent-state.sh is owned by Herdr's integration, not tracked here
