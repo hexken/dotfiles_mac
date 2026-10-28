@@ -44,6 +44,24 @@ alias gcl="git clone"
 alias gft="git fetch"
 
 alias lg="lazygit"
+# --- Herdr ---
+alias hagents="herdr agent list | jq -r '.result.agents[] | [(.name // \"-\"), .pane_id, .tab_id, .agent, .agent_status, .terminal_title_stripped] | @tsv' | column -t -s \$'\t'"
+alias hblocked="herdr agent list | jq -r '.result.agents[] | select(.agent_status==\"blocked\") | [(.name // .pane_id), .terminal_title_stripped] | @tsv'"
+hp()     { herdr agent prompt "$1" "${*:2}" --wait; }
+hr()     { herdr agent read "$1" --source recent-unwrapped --lines "${2:-80}"; }
+hdone()  { herdr agent wait "$1" && herdr notification show "$1 finished" --sound done; }
+hname()  { herdr agent rename "$1" "$2"; }
+hfocus() { herdr agent focus "$1"; }
+# hnew <name> [kind=claude] [right|down]
+hnew() {
+  local pane
+  pane=$(herdr pane split --current --direction "${3:-right}" --cwd "$PWD" --no-focus | jq -r .result.pane.pane_id) || return
+  herdr agent start "$1" --kind "${2:-claude}" --pane "$pane"
+}
+hpick() {
+  herdr agent list | jq -r '.result.agents[] | [(.name // .pane_id), .agent_status, .terminal_title_stripped] | @tsv' \
+    | fzf --delimiter=$'\t' | cut -f1
+}
 
 # Managed Mac Privileges.app integration (only active if PrivilegesCLI exists)
 if [[ -x "/Applications/Privileges.app/Contents/MacOS/PrivilegesCLI" ]]; then
@@ -67,6 +85,7 @@ ccp() {
 # Completion initialization (including Docker CLI completions)
 [[ -d "$HOME/.docker/completions" ]] && fpath=("$HOME/.docker/completions" $fpath)
 autoload -Uz compinit && compinit
+command -v herdr >/dev/null 2>&1 && source <(herdr completion zsh)
 
 if [[ -f "$HOME/config-personal/starship.toml" ]]; then
   export STARSHIP_CONFIG="$HOME/config-personal/starship.toml"
