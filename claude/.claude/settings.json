@@ -1,5 +1,23 @@
 {
+  "attribution": {
+    "commit": ""
+  },
   "permissions": {
+    "deny": [
+      "Read(**/*.png)",
+      "Read(**/*.PNG)",
+      "Read(**/*.jpg)",
+      "Read(**/*.JPG)",
+      "Read(**/*.jpeg)",
+      "Read(**/*.JPEG)",
+      "Read(**/*.gif)",
+      "Read(**/*.webp)",
+      "Read(**/*.bmp)",
+      "Read(**/*.tiff)",
+      "Read(**/*.heic)",
+      "Read(**/*.pdf)",
+      "Read(**/*.PDF)"
+    ],
     "defaultMode": "auto"
   },
   "model": "opus",
@@ -32,10 +50,15 @@
       "effortLevel": "medium"
     },
     "claude-opus-5-5": {
-      "effortLevel": "medium"
+      "effortLevel": "high"
     }
   },
   "tui": "fullscreen",
   "theme": "auto",
-  "autoCompactEnabled": true
+  "editorMode": "vim",
+  "autoCompactEnabled": true,
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/ktjhia/.claude/statusline-command.sh"
+  }
 }
