@@ -20,7 +20,10 @@
       "Bash(bkt pr merge)",
       "Bash(bkt pr merge *)",
       "Bash(bkt * pr merge*)",
-      "Bash(bkt api *merge*)"
+      "Bash(bkt api *merge*)",
+      "Edit(~/Dev/work/work-repo*/**/tests/acceptance/**)",
+      "Edit(~/Dev/work/work-repo*/**/ci/**)",
+      "Edit(~/Dev/work/work-repo*/**/bitbucket-pipelines.yml)"
     ],
     "defaultMode": "auto"
   },
