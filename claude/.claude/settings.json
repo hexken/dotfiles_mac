@@ -16,7 +16,11 @@
       "Read(**/*.tiff)",
       "Read(**/*.heic)",
       "Read(**/*.pdf)",
-      "Read(**/*.PDF)"
+      "Read(**/*.PDF)",
+      "Bash(bkt pr merge)",
+      "Bash(bkt pr merge *)",
+      "Bash(bkt * pr merge*)",
+      "Bash(bkt api *merge*)"
     ],
     "defaultMode": "auto"
   },
@@ -45,6 +49,10 @@
       }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/ktjhia/.claude/statusline-command.sh"
+  },
   "modelSettings": {
     "claude-sonnet-5-5": {
       "effortLevel": "medium"
@@ -57,8 +65,5 @@
   "theme": "auto",
   "editorMode": "vim",
   "autoCompactEnabled": true,
-  "statusLine": {
-    "type": "command",
-    "command": "bash /Users/ktjhia/.claude/statusline-command.sh"
-  }
+  "advisorModel": "fable"
 }
