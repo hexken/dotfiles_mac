@@ -1,0 +1,139 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["playwright>=1.49", "axe-playwright-python>=0.1.4"]
+# ///
+"""Describe a web page as text, so an agent can inspect a UI without screenshots.
+
+Prints the page's accessibility snapshot (headings, buttons, tables, labels, values), console
+errors, uncaught exceptions, failed requests and layout problems (horizontal overflow, clipped
+text, overlapping or off-screen controls). Optionally runs an axe-core accessibility audit.
+--screenshot saves an image for a human to open; never read it into an agent's conversation.
+"""
+import argparse
+import sys
+
+from playwright.sync_api import Error, sync_playwright
+
+LAYOUT_JS = r"""
+(maxItems) => {
+  const describe = (el) => {
+    const name = (el.getAttribute('aria-label') || el.innerText || el.value || '').trim().replace(/\s+/g, ' ').slice(0, 60);
+    const id = el.id ? '#' + el.id : '';
+    const cls = el.classList.length ? '.' + [...el.classList].slice(0, 2).join('.') : '';
+    return `${el.tagName.toLowerCase()}${id}${cls}${name ? ` "${name}"` : ''}`;
+  };
+  const visible = (el) => {
+    const s = getComputedStyle(el);
+    const r = el.getBoundingClientRect();
+    return s.display !== 'none' && s.visibility !== 'hidden' && r.width > 0 && r.height > 0;
+  };
+  const doc = document.documentElement;
+  const out = {pageOverflowX: doc.scrollWidth - doc.clientWidth, clipped: [], offscreen: [], overlaps: []};
+  for (const el of document.body.querySelectorAll('*')) {
+    if (out.clipped.length >= maxItems) break;
+    if (!visible(el) || !el.innerText) continue;
+    const s = getComputedStyle(el);
+    const clipsX = ['hidden', 'clip'].includes(s.overflowX) || s.textOverflow === 'ellipsis';
+    const clipsY = ['hidden', 'clip'].includes(s.overflowY);
+    if ((clipsX && el.scrollWidth > el.clientWidth + 1) || (clipsY && el.scrollHeight > el.clientHeight + 1)) {
+      out.clipped.push(`${describe(el)}: content ${el.scrollWidth}x${el.scrollHeight}px in a ${el.clientWidth}x${el.clientHeight}px box`);
+    }
+  }
+  const controls = [...document.querySelectorAll('a, button, input, select, textarea, [role=button], [role=link], [role=tab]')].filter(visible).slice(0, 300);
+  const rects = controls.map((el) => el.getBoundingClientRect());
+  controls.forEach((el, i) => {
+    const r = rects[i];
+    if ((r.right > doc.clientWidth + 1 || r.left < -1) && out.offscreen.length < maxItems) {
+      out.offscreen.push(`${describe(el)}: x ${Math.round(r.left)}..${Math.round(r.right)}, viewport width ${doc.clientWidth}`);
+    }
+    for (let j = i + 1; j < controls.length && out.overlaps.length < maxItems; j++) {
+      const q = rects[j];
+      if (el.contains(controls[j]) || controls[j].contains(el)) continue;
+      const w = Math.min(r.right, q.right) - Math.max(r.left, q.left);
+      const h = Math.min(r.bottom, q.bottom) - Math.max(r.top, q.top);
+      if (w > 2 && h > 2) out.overlaps.push(`${describe(el)} overlaps ${describe(controls[j])} by ${Math.round(w)}x${Math.round(h)}px`);
+    }
+  });
+  return out;
+}
+"""
+
+
+def section(title: str, lines: list[str], empty: str = "none") -> None:
+    print(f"\n## {title}")
+    print("\n".join(f"- {line}" for line in lines) if lines else f"({empty})")
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("url")
+    ap.add_argument("--selector", default="body", help="element whose accessibility snapshot to print (default: body)")
+    ap.add_argument("--wait-for", help="CSS selector to wait for before reading the page")
+    ap.add_argument("--wait-ms", type=int, default=500, help="extra settle time after load (default: 500)")
+    ap.add_argument("--viewport", default="1280x800", help="WxH, e.g. 390x844 for a phone (default: 1280x800)")
+    ap.add_argument("--max-lines", type=int, default=300, help="truncate the snapshot (default: 300 lines)")
+    ap.add_argument("--axe", action="store_true", help="also run an axe-core accessibility audit (contrast, labels, ...)")
+    ap.add_argument("--screenshot", metavar="PATH", help="save a PNG for a human to view; agents must not read it")
+    ap.add_argument("--headed", action="store_true", help="show the browser window")
+    args = ap.parse_args()
+    width, height = (int(x) for x in args.viewport.lower().split("x"))
+
+    console, page_errors, failed = [], [], []
+    with sync_playwright() as p:
+        try:
+            browser = p.chromium.launch(channel="chrome", headless=not args.headed)
+        except Error:
+            browser = p.chromium.launch(headless=not args.headed)
+        page = browser.new_page(viewport={"width": width, "height": height})
+        page.on("console", lambda m: console.append(f"{m.type}: {m.text[:300]}") if m.type in ("error", "warning") else None)
+        page.on("pageerror", lambda e: page_errors.append(str(e)[:300]))
+        page.on("requestfailed", lambda r: failed.append(f"{r.method} {r.url[:150]}: {r.failure}"))
+        page.on("response", lambda r: failed.append(f"{r.request.method} {r.url[:150]}: HTTP {r.status}") if r.status >= 400 else None)
+
+        response = page.goto(args.url, wait_until="networkidle", timeout=30000)
+        if args.wait_for:
+            page.wait_for_selector(args.wait_for, timeout=15000)
+        page.wait_for_timeout(args.wait_ms)
+
+        print(f"# {page.title() or '(no title)'}")
+        print(f"url: {page.url}   status: {response.status if response else '?'}   viewport: {width}x{height}")
+
+        snapshot = page.locator(args.selector).first.aria_snapshot().splitlines()
+        if len(snapshot) > args.max_lines:
+            snapshot = snapshot[: args.max_lines] + [f"... ({len(snapshot) - args.max_lines} more lines; narrow with --selector)"]
+        print(f"\n## Accessibility snapshot ({args.selector})")
+        print("\n".join(snapshot))
+
+        section("Console errors and warnings", console)
+        section("Uncaught exceptions", page_errors)
+        section("Failed requests and HTTP errors", failed)
+
+        layout = page.evaluate(LAYOUT_JS, 20)
+        issues = []
+        if layout["pageOverflowX"] > 0:
+            issues.append(f"page scrolls sideways: content is {layout['pageOverflowX']}px wider than the viewport")
+        issues += [f"clipped: {x}" for x in layout["clipped"]]
+        issues += [f"off-screen control: {x}" for x in layout["offscreen"]]
+        issues += [f"overlap: {x}" for x in layout["overlaps"]]
+        section("Layout problems", issues)
+
+        if args.axe:
+            from axe_playwright_python.sync_playwright import Axe
+            results = Axe().run(page)
+            violations = results.response.get("violations", [])
+            section("Accessibility audit (axe-core)", [
+                f"{v['impact'] or 'n/a'}: {v['id']}: {v['help']} ({len(v['nodes'])} element(s), e.g. {v['nodes'][0]['target']})"
+                for v in violations])
+
+        if args.screenshot:
+            page.screenshot(path=args.screenshot, full_page=True)
+            print(f"\nScreenshot saved for a human to open: {args.screenshot} (agents: do not read it)")
+        browser.close()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Error as e:
+        sys.exit(f"page-text: {str(e).splitlines()[0]}")

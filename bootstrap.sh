@@ -36,7 +36,7 @@ STOW_PACKAGES=(
   "tmux|~/.config/tmux/tmux.conf"
   "karabiner|~/.config/karabiner"
   "hammerspoon|~/.hammerspoon/init.lua"
-  "scripts|~/.local/bin & ~/Library/LaunchAgents (llama-server)"
+  "scripts|~/.local/bin (llama-server, page-text) & ~/Library/LaunchAgents"
 )
 
 usage() {
@@ -549,6 +549,7 @@ if (( ${#FINAL_STOW_PKGS[@]} > 0 )); then
         backup_if_real_file "$HOME/.claude/skills/dotfiles/SKILL.md"
         backup_if_real_file "$HOME/.claude/skills/netskope-recover/SKILL.md"
         backup_if_real_file "$HOME/.claude/skills/netskope-recover/recover.py"
+        backup_if_real_file "$HOME/.claude/skills/web-ui-text/SKILL.md"
         chmod +x "$DOTFILES_DIR/claude/.claude/hooks/"* 2>/dev/null || true
         chmod +x "$DOTFILES_DIR/claude/.claude/skills/netskope-recover/recover.py" 2>/dev/null || true
         stow -d "$DOTFILES_DIR" -t "$HOME" --no-folding --restow claude
@@ -581,6 +582,7 @@ if (( ${#FINAL_STOW_PKGS[@]} > 0 )); then
         mkdir -p "$HOME/.local/bin" "$HOME/Library/LaunchAgents"
         backup_if_real_file "$HOME/.local/bin/start-llama-qwen"
         backup_if_real_file "$HOME/.local/bin/stop-llama-qwen"
+        backup_if_real_file "$HOME/.local/bin/page-text"
         backup_if_real_file "$HOME/Library/LaunchAgents/com.ktjhia.llama-qwen.plist"
         chmod +x "$DOTFILES_DIR/scripts/.local/bin/"* 2>/dev/null || true
         stow -d "$DOTFILES_DIR" -t "$HOME" --no-folding --restow scripts
