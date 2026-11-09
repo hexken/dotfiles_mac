@@ -17,9 +17,21 @@ This repo tracks macOS configs with GNU Stow (target `$HOME`) and installs them 
 
 - **Never track files another tool manages or regenerates** (e.g. `~/.claude/hooks/herdr-agent-state.sh`, written by `herdr integration install`). Have `bootstrap.sh` run the tool's installer instead.
 - **Never track machine-local state** (session IDs, caches, `~/.config/herdr/agent-names.tsv`).
-- **Never commit secrets.** Machine- or client-specific values belong in the untracked `~/.zshrc.local`, `~/.gitconfig.local`, or `~/.gitconfig-work`.
+- **Never commit secrets or workplace details.** See "The repo is public" below.
 - **New Homebrew packages** go in the right `brew/Brewfile.{core,apps,ai}` tier (`./bootstrap.sh --audit` helps).
 - **Don't commit.** Leave changes staged or unstaged and show the user the `git status` and a suggested commit message.
+
+## The repo is public: scrub what's published, keep what works locally
+
+`origin` is a public GitHub repo, so every commit is published. Workplace details never go in a commit: employer, client and project names, internal system or policy names, work repo and org names, work email addresses, and secrets. Scrubbing is only for the published copy, though. On this machine, keep whichever version works best, which is usually the specific one.
+
+1. **Check before every commit.** Search the staged diff (`git diff --cached`) for workplace details. If any are there, scrub them first by replacing each with a generic term, e.g. "the corporate proxy".
+2. **Prefer an untracked override.** If the tool can read a second file, commit the generic version and put the specifics in an untracked one it reads: `~/.zshrc.local`, `~/.gitconfig.local`, `~/.gitconfig-work`, or for a Claude skill a `LOCAL.md` beside its runtime state that the skill tells Claude to read (e.g. `~/.claude/netskope-recover/LOCAL.md`). Then nothing has to be hidden from git.
+3. **Otherwise, commit the scrubbed version and keep the specific one on disk.** Use this when the specifics have to live in the tracked file itself, such as a skill's description or a hook's message:
+   - Stage a scrubbed copy without touching the file on disk: write it to a temp file, then `git update-index --cacheinfo 100644,$(git hash-object -w <tmp>),<path>` (use `100755` for executables). Commit.
+   - Mark the file `git update-index --skip-worktree <path>`, so git ignores the specific version on disk and it can't be staged by accident.
+   - Record the original wording, the scrubbed wording and the file list in the untracked `LOCAL.md`.
+   - `git ls-files -v | grep '^S'` lists the hidden files. While a file is hidden, edits to it are never committed. To publish a change, run `--no-skip-worktree`, make the change, stage a scrubbed copy as above, commit, and hide the file again. A `git pull` that changes a hidden file fails until you do the same.
 
 ## Known caveat
 
