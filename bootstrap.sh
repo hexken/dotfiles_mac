@@ -544,8 +544,13 @@ if (( ${#FINAL_STOW_PKGS[@]} > 0 )); then
         backup_if_real_file "$HOME/.claude/CLAUDE.md"
         backup_if_real_file "$HOME/.claude/settings.json"
         backup_if_real_file "$HOME/.claude/hooks/herdr-restore-name.sh"
+        backup_if_real_file "$HOME/.claude/hooks/block-screenshots.py"
+        backup_if_real_file "$HOME/.claude/hooks/netskope-stop-failure.py"
         backup_if_real_file "$HOME/.claude/skills/dotfiles/SKILL.md"
+        backup_if_real_file "$HOME/.claude/skills/netskope-recover/SKILL.md"
+        backup_if_real_file "$HOME/.claude/skills/netskope-recover/recover.py"
         chmod +x "$DOTFILES_DIR/claude/.claude/hooks/"* 2>/dev/null || true
+        chmod +x "$DOTFILES_DIR/claude/.claude/skills/netskope-recover/recover.py" 2>/dev/null || true
         stow -d "$DOTFILES_DIR" -t "$HOME" --no-folding --restow claude
         # herdr-agent-state.sh is owned by Herdr's integration, not tracked here
         if command -v herdr >/dev/null 2>&1; then

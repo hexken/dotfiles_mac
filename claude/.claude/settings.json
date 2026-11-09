@@ -11,10 +11,19 @@
       "Read(**/*.jpeg)",
       "Read(**/*.JPEG)",
       "Read(**/*.gif)",
+      "Read(**/*.GIF)",
       "Read(**/*.webp)",
+      "Read(**/*.WEBP)",
       "Read(**/*.bmp)",
+      "Read(**/*.BMP)",
+      "Read(**/*.tif)",
+      "Read(**/*.TIF)",
       "Read(**/*.tiff)",
+      "Read(**/*.TIFF)",
       "Read(**/*.heic)",
+      "Read(**/*.HEIC)",
+      "Read(**/*.avif)",
+      "Read(**/*.ico)",
       "Read(**/*.pdf)",
       "Read(**/*.PDF)",
       "Bash(bkt pr merge)",
@@ -47,6 +56,29 @@
             "type": "command",
             "command": "bash /Users/ktjhia/.claude/hooks/herdr-restore-name.sh",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^mcp__",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I /Users/ktjhia/.claude/hooks/block-screenshots.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I /Users/ktjhia/.claude/hooks/netskope-stop-failure.py",
+            "timeout": 120
           }
         ]
       }

@@ -14,3 +14,7 @@
 
 ## Herdr agent names
 - To name a Herdr agent (including yourself), run `herdr-name <name> [pane-id]` — not `herdr agent rename`, which doesn't survive Herdr restarts. `herdr-name --list` shows saved names.
+
+## Netskope proxy (this machine)
+- Never read or request images, screenshots or PDFs: the corporate proxy (Netskope) blocks every API request carrying one, and the session is then stuck.
+- If a session hits "API Error: 403 Your IT Admin has blocked this request", use the `netskope-recover` skill; never print the blocked content.
