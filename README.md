@@ -75,6 +75,12 @@ Your packages live in three plain-text files:
 
 ---
 
+## Coding agents
+
+How Claude Code, Antigravity (`agy`) and Herdr are set up across projects, including permission modes, rule and skill locations, and what the corporate proxy blocks: see [`AGENT-SETUP.md`](AGENT-SETUP.md).
+
+---
+
 ## Machine / Client-Specific Overrides (Untracked)
 
 * **Zsh (`~/.zshrc.local`)**: Automatically sourced at the bottom of `.zshrc` if present. Put client-specific environment variables, tokens, or proxy settings here so they never get committed to Git.
