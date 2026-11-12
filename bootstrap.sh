@@ -36,7 +36,7 @@ STOW_PACKAGES=(
   "tmux|~/.config/tmux/tmux.conf"
   "karabiner|~/.config/karabiner"
   "hammerspoon|~/.hammerspoon/init.lua"
-  "scripts|~/.local/bin (llama-server, page-text) & ~/Library/LaunchAgents"
+  "scripts|~/.local/bin (llama-server, page-text, git-scrub) & ~/Library/LaunchAgents"
 )
 
 usage() {
@@ -583,9 +583,15 @@ if (( ${#FINAL_STOW_PKGS[@]} > 0 )); then
         backup_if_real_file "$HOME/.local/bin/start-llama-qwen"
         backup_if_real_file "$HOME/.local/bin/stop-llama-qwen"
         backup_if_real_file "$HOME/.local/bin/page-text"
+        backup_if_real_file "$HOME/.local/bin/git-scrub"
         backup_if_real_file "$HOME/Library/LaunchAgents/com.ktjhia.llama-qwen.plist"
         chmod +x "$DOTFILES_DIR/scripts/.local/bin/"* 2>/dev/null || true
         stow -d "$DOTFILES_DIR" -t "$HOME" --no-folding --restow scripts
+        if [[ -f "$HOME/.config/git-scrub/map.tsv" ]]; then
+          (cd "$DOTFILES_DIR" && "$DOTFILES_DIR/scripts/.local/bin/git-scrub" install)
+        else
+          echo "  git-scrub: no ~/.config/git-scrub/map.tsv; write it, then run git scrub install in $DOTFILES_DIR"
+        fi
         if [[ -f "$HOME/Library/LaunchAgents/com.ktjhia.llama-qwen.plist" ]]; then
           launchctl bootout "gui/$(id -u)/com.ktjhia.llama-qwen" 2>/dev/null || true
           launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.ktjhia.llama-qwen.plist" 2>/dev/null || true

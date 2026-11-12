@@ -25,13 +25,10 @@ This repo tracks macOS configs with GNU Stow (target `$HOME`) and installs them 
 
 `origin` is a public GitHub repo, so every commit is published. Workplace details never go in a commit: employer, client and project names, internal system or policy names, work repo and org names, work email addresses, and secrets. Scrubbing is only for the published copy, though. On this machine, keep whichever version works best, which is usually the specific one.
 
-1. **Check before every commit.** Search the staged diff (`git diff --cached`) for workplace details. If any are there, scrub them first by replacing each with a generic term, e.g. "the corporate proxy".
-2. **Prefer an untracked override.** If the tool can read a second file, commit the generic version and put the specifics in an untracked one it reads: `~/.zshrc.local`, `~/.gitconfig.local`, `~/.gitconfig-work`, or for a Claude skill a `LOCAL.md` beside its runtime state that the skill tells Claude to read (e.g. `~/.claude/netskope-recover/LOCAL.md`). Then nothing has to be hidden from git.
-3. **Otherwise, commit the scrubbed version and keep the specific one on disk.** Use this when the specifics have to live in the tracked file itself, such as a skill's description or a hook's message:
-   - Stage a scrubbed copy without touching the file on disk: write it to a temp file, then `git update-index --cacheinfo 100644,$(git hash-object -w <tmp>),<path>` (use `100755` for executables). Commit.
-   - Mark the file `git update-index --skip-worktree <path>`, so git ignores the specific version on disk and it can't be staged by accident.
-   - Record the original wording, the scrubbed wording and the file list in the untracked `LOCAL.md`.
-   - `git ls-files -v | grep '^S'` lists the hidden files. While a file is hidden, edits to it are never committed. To publish a change, run `--no-skip-worktree`, make the change, stage a scrubbed copy as above, commit, and hide the file again. A `git pull` that changes a hidden file fails until you do the same.
+1. **`git scrub` does the scrubbing.** A git clean/smudge filter (`scripts/.local/bin/git-scrub`, set up by `git scrub install`, which `bootstrap.sh` runs) swaps each private term for a public stand-in when a file is staged, and back when it is checked out. Files on disk keep the specific wording; commits only ever hold the stand-ins, so commit, push and pull as usual. The map is `~/.config/git-scrub/map.tsv`, untracked and outside the repo: `private<TAB>public` per line, or a private term alone, which the guards refuse in any case. Never commit the map or copy its terms into a tracked file's message, comment or docs.
+2. **Add a term when you meet a new detail.** Pick a stand-in that appears nowhere else in the repo, then run `git scrub check`: every tracked file must round-trip unchanged, and the staged copies must hold no private term. Reports name map lines, never the terms.
+3. **The guards.** The pre-commit hook refuses a staged file or path that holds a private term, the commit-msg hook a message that does, and the pre-push hook any commit whose message, paths or added lines do (the filter bypassed, say). `git scrub audit` lists past commits that added one. The filter can't scrub file names or the commit author: keep private terms out of both.
+4. **Still prefer an untracked override** when the tool can read a second file (`~/.zshrc.local`, `~/.gitconfig.local`, a skill's `LOCAL.md` such as `~/.claude/netskope-recover/LOCAL.md`): details that are long or sensitive belong there, not in the map.
 
 ## Known caveat
 

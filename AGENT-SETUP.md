@@ -55,7 +55,7 @@ Those changes are the owner's to make by hand. In practice: an agent writes a sc
 | Permanent permission grants (`globalPermissionGrants.allow`) | `~/.gemini/config/config.json` |
 | Global rules, loaded in every workspace | `~/.gemini/config/AGENTS.md` (it includes `~/.claude/CLAUDE.md` with `@[label](path)`) |
 | Project rules | `AGENTS.md` or `GEMINI.md` at the project root. Use an untracked `AGENTS.md` that includes the project's `CLAUDE.md` and `CLAUDE.local.md`, so both harnesses follow one set of rules. Each rule file is capped at 24 KB after includes |
-| Global skills | `~/.gemini/config/skills/<name>/SKILL.md`. Same format as Claude Code skills. Use **real copies**, not symlinks: a symlink that resolves outside the workspace raises a file-access dialog |
+| Global skills | `~/.gemini/config/skills/<name>/SKILL.md`. Same format as Claude Code skills. Use **real copies**, not symlinks: a symlink that resolves outside the workspace raises a file-access dialog. Keep a script that recopies them, so they can't drift |
 | Hooks | `~/.gemini/config/hooks.json`; Herdr installs its own session hook here |
 
 **Permission model**
@@ -68,13 +68,13 @@ Those changes are the owner's to make by hand. In practice: an agent writes a sc
 **Print mode (`agy -p "<prompt>"`)** is non-interactive, good for one-shot reviews.
 - `--mode auto` is refused there behind a server-side rollout flag ("not available for this account"; the log says `rollout flag off`), even when interactive auto mode works. It is not a laptop restriction.
 - Without `toolPermission: always-proceed`, print mode refuses any tool needing permission, so it can read files but not run commands.
-- `--mode plan` keeps it from changing anything.
+- `--mode plan` does not stop shell commands once `always-proceed` is set, and a command can change files. Run reviews that use it in a throwaway checkout.
 
 **Hooks gotcha.** A `PreToolUse` hook that prints `{}` is read as *deny* for every tool. Print nothing when the hook has no objection, and print `{"decision": "deny", "reason": …}` to refuse. Test the allow path as well as the deny path.
 
 **Models:**
 - Gemini 4 Carbon (medium) builds UIs.
-- The same model reviews Claude-built work in print mode, as a cross-vendor second opinion. It reads only, but it finds real defects that a same-vendor review misses.
+- The same model reviews Claude-built work in print mode, as a cross-vendor second opinion, and finds real defects that a same-vendor review misses. With `always-proceed` it runs tests too, so give it a throwaway worktree: `--mode plan` does not stop shell commands.
 - AGY also serves Claude models on Google's credits. Those sessions lack Claude Code's skills and permission rules.
 
 ## Herdr
@@ -89,8 +89,10 @@ Those changes are the owner's to make by hand. In practice: an agent writes a sc
 
 ## Patterns that worked
 
-- **One orchestrator, many short sessions.** Each unit of work gets a fresh builder session with a written brief. It writes a closing summary and stops. Reviews run in separate sessions.
+- **One orchestrator, one session per unit.** Each unit of work gets a fresh builder session with a written brief, in its own Herdr tab. It writes a closing summary and stops, then fixes its own review findings in the same session, keeping the context of why it built what it built. Reviews run in separate, fresh sessions, so they don't anchor on the builder's reasoning.
+- **Mechanical orchestration in a script.** A small supervisor (a registry of units plus a state machine) starts reviews, sends fixes, lands and merges; the orchestrating model wakes only for judgment calls, which keeps its context small.
 - **Files as the mailbox:** briefs in, summaries and reviews out, and an inbox of open items per unit. They survive restarts and context compaction.
-- **Two reviews from two vendors**, then at most one fix round and one light re-review, so review rounds can't spiral.
+- **Two reviews from two vendors**, then at most one fix round (by the builder) and one light re-review, so review rounds can't spiral.
 - **Merge only when** the build is green and the reviews are clean. Agents never merge into the main branch.
+- **Docs describe the current state.** Plans, specs and agent rules say what is, what is planned and what is open. They are never logs, since git keeps history. Old plans and reports go to `~/Archive/`, outside every agent's workspace and grants, so stale or contradictory text never reaches an agent's context.
 - **One heavy test run at a time on a shared laptop.** Wrap whole-suite runs in `lockf -k ~/.cache/<project>-heavy.lock …`.

@@ -10,7 +10,7 @@ Netskope decrypts every request to api.anthropic.com. When it classifies a reque
 
 The fix is a copy of the transcript that stops before the blocked content. `recover.py` writes it under a new session ID and never modifies the original.
 
-Site-specific details (the employer, the proxy rule's name, where blocks are logged locally) are in `~/.claude/netskope-recover/LOCAL.md` when it exists. Read it if the user needs them, e.g. to report a block to IT. Never copy them into this skill: the dotfiles repo is public.
+Site-specific details (the employer, the proxy rule's name, where blocks are logged locally) are in `~/.claude/netskope-recover/LOCAL.md` when it exists. Read it if the user needs them, e.g. to report a block to IT. Never copy them into this skill: the dotfiles repo is public. (Its description names them only in this local copy; `git scrub` swaps them for stand-ins when the file is committed.)
 
 ## Steps
 

@@ -29,7 +29,7 @@ def main() -> None:
         "hookEventName": "PreToolUse",
         "permissionDecision": "deny",
         "permissionDecisionReason": (
-            "Blocked: this call returns an image, and the corporate proxy rejects every request "
+            "Blocked: this call returns an image, and the corporate proxy (Netskope) rejects every request "
             "carrying an image, which breaks the session for good. Get the information as text instead: "
             "for web pages run `page-text <url>` (see the web-ui-text skill); otherwise read the document "
             "text, DOM, logs or test output, or ask the user to look."),

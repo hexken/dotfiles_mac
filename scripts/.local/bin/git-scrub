@@ -1,0 +1,229 @@
+#!/usr/bin/env python3
+"""Keep private terms out of a public repo while the files on disk keep them.
+
+A git clean/smudge filter. Staging a file (clean) replaces each private term with
+its public stand-in; checking a file out (smudge) puts the private term back. The
+map of terms lives outside the repo and is never committed.
+
+  git scrub install    set up the filter and the commit and push guards in this repo
+  git scrub check      every tracked file round-trips, and the index holds no private term
+  git scrub audit [R]  commits in revision range R (default: all) whose message, paths or
+                       added lines hold a private term
+  git scrub clean      the filter's clean side (stdin to stdout)
+  git scrub smudge     the filter's smudge side (stdin to stdout)
+
+Map: `git config scrub.map`, else ~/.config/git-scrub/map.tsv. One entry per line:
+"private<TAB>public" to replace, or "private" alone to refuse any commit or push
+that holds it (any case). Blank lines and lines starting with # are skipped.
+Reports name map lines, never the terms, so they stay out of logs and transcripts.
+"""
+
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+DEFAULT_MAP = Path.home() / ".config/git-scrub/map.tsv"
+HOOK_MARK = "# installed by git-scrub"
+
+
+def git(*args: str, data: bytes | None = None) -> bytes:
+    return subprocess.run(["git", *args], input=data, capture_output=True, check=True).stdout
+
+
+def map_path() -> Path:
+    try:
+        configured = git("config", "--get", "scrub.map").decode().strip()
+    except subprocess.CalledProcessError:
+        configured = ""
+    return Path(os.path.expanduser(configured)) if configured else DEFAULT_MAP
+
+
+def load_map() -> list[tuple[int, bytes, bytes]]:
+    path = map_path()
+    if not path.exists():
+        sys.exit(f"git-scrub: no map at {path}")
+    pairs = []
+    for number, line in enumerate(path.read_bytes().splitlines(), 1):
+        if not line.strip() or line.lstrip().startswith(b"#"):
+            continue
+        parts = line.rstrip(b"\r").split(b"\t")
+        if len(parts) > 2 or not parts[0] or (len(parts) == 2 and not parts[1]):
+            sys.exit(f"git-scrub: map line {number} is not 'private<TAB>public' or 'private'")
+        pairs.append((number, parts[0], parts[1] if len(parts) == 2 else b""))
+    problems = []
+    for number, private, public in pairs:
+        for other, private2, public2 in pairs:
+            if other != number and private == private2:
+                problems.append(f"map lines {number} and {other} have the same private term")
+            if other != number and public and public == public2:
+                problems.append(f"map lines {number} and {other} have the same public stand-in")
+            if public and private2.lower() in public.lower():
+                problems.append(f"map line {number}'s stand-in contains line {other}'s private term")
+    if problems:
+        sys.exit("git-scrub: " + "\n".join(sorted(set(problems))))
+    return pairs
+
+
+def replacer(pairs: list[tuple[bytes, bytes]]):
+    table = {k: v for k, v in pairs if k and v}
+    if not table:
+        return lambda data: data
+    pattern = re.compile(b"|".join(re.escape(k) for k in sorted(table, key=len, reverse=True)))
+    return lambda data: pattern.sub(lambda m: table[m.group(0)], data)
+
+
+def binary(data: bytes) -> bool:
+    return b"\0" in data[:8000]
+
+
+def private_hits(pairs, data: bytes) -> list[int]:
+    lowered = data.lower()
+    return [number for number, private, _ in pairs if private.lower() in lowered]
+
+
+def filter_stream(direction: str) -> None:
+    pairs = load_map()
+    data = sys.stdin.buffer.read()
+    if not binary(data):
+        if direction == "clean":
+            data = replacer([(p, q) for _, p, q in pairs])(data)
+        else:
+            data = replacer([(q, p) for _, p, q in pairs])(data)
+    sys.stdout.buffer.write(data)
+
+
+def tracked() -> list[str]:
+    return [p for p in git("ls-files", "-z").decode().split("\0") if p]
+
+
+def index_blob(path: str) -> bytes:
+    return git("cat-file", "blob", f":{path}")
+
+
+def check(staged_only: bool) -> int:
+    pairs = load_map()
+    clean = replacer([(p, q) for _, p, q in pairs])
+    smudge = replacer([(q, p) for _, p, q in pairs])
+    root = Path(git("rev-parse", "--show-toplevel").decode().strip())
+    failed = 0
+    paths = tracked()
+    if staged_only:
+        paths = [p for p in git("diff", "--cached", "--name-only", "-z", "--diff-filter=AM").decode().split("\0") if p]
+    for path in paths:
+        try:
+            stored = index_blob(path)
+        except subprocess.CalledProcessError:
+            continue
+        hits = private_hits(pairs, stored) if not binary(stored) else []
+        hits = sorted(set(hits + private_hits(pairs, path.encode())))
+        if hits:
+            failed = 1
+            print(f"{path}: the staged copy or its path holds private terms (map lines {', '.join(map(str, hits))})")
+        if staged_only:
+            continue
+        file = root / path
+        if not file.is_file() or file.is_symlink():
+            continue
+        disk = file.read_bytes()
+        if binary(disk) or smudge(clean(disk)) == disk:
+            continue
+        failed = 1
+        lowered = disk.lower()
+        lines = [str(n) for n, _, public in pairs if public and public.lower() in lowered]
+        print(f"{path}: does not round-trip; it already contains the stand-in of map lines {', '.join(lines) or '?'}")
+    hidden = [line[2:] for line in git("ls-files", "-v").decode().splitlines() if line.startswith("S ")]
+    if hidden and not staged_only:
+        print("skip-worktree files (the filter replaces this; unhide them with "
+              "`git update-index --no-skip-worktree <file>`): " + ", ".join(hidden))
+    return failed
+
+
+def audit(revisions: list[str]) -> int:
+    pairs = load_map()
+    log = git("log", "-p", "--no-ext-diff", "--format=@@commit %h %s%n%B%n@@diff", *(revisions or ["--all"]))
+    commit, in_message, found = b"", False, {}
+    for line in log.splitlines():
+        if line.startswith(b"@@commit "):
+            commit, in_message = line[9:], True
+            continue
+        if line == b"@@diff":
+            in_message = False
+            continue
+        scanned = in_message or line.startswith((b"+", b"diff --git ", b"rename to ", b"copy to "))
+        if scanned:
+            for number in private_hits(pairs, line):
+                found.setdefault(commit, set()).add(number)
+    for commit, numbers in found.items():
+        print(f"{commit.decode(errors='replace')}: adds private terms (map lines {', '.join(map(str, sorted(numbers)))})")
+    return 1 if found else 0
+
+
+def check_message(path: str) -> int:
+    hits = private_hits(load_map(), Path(path).read_bytes())
+    if hits:
+        print(f"git-scrub: the commit message holds private terms (map lines {', '.join(map(str, hits))})")
+    return 1 if hits else 0
+
+
+def pre_push() -> int:
+    zero = "0" * 40
+    failed = 0
+    for line in sys.stdin.read().splitlines():
+        _, local, _, remote = line.split()
+        if local == zero:
+            continue
+        revisions = [f"{remote}..{local}"] if remote != zero else [local, "--not", "--remotes"]
+        failed |= audit(revisions)
+    if failed:
+        print("git-scrub: push refused; the commits above would publish private terms")
+    return failed
+
+
+def install() -> int:
+    load_map()
+    me = str(Path(__file__).resolve())
+    git("config", "filter.scrub.clean", f"'{me}' clean")
+    git("config", "filter.scrub.smudge", f"'{me}' smudge")
+    git("config", "filter.scrub.required", "true")
+    root = Path(git("rev-parse", "--show-toplevel").decode().strip())
+    attributes = root / ".gitattributes"
+    lines = attributes.read_text().splitlines() if attributes.exists() else []
+    if "* filter=scrub" not in lines:
+        attributes.write_text("\n".join(["* filter=scrub", *lines]) + "\n")
+    hooks = Path(git("rev-parse", "--git-path", "hooks").decode().strip())
+    if not hooks.is_absolute():
+        hooks = root / hooks
+    for name, command in (("pre-commit", "check --staged"), ("commit-msg", 'check-message "$1"'), ("pre-push", "pre-push")):
+        hook = hooks / name
+        if hook.exists() and HOOK_MARK not in hook.read_text():
+            print(f"git-scrub: {hook} exists and is not ours; add `'{me}' {command}` to it yourself")
+            continue
+        hook.write_text(f"#!/bin/sh\n{HOOK_MARK}\nexec '{me}' {command}\n")
+        hook.chmod(0o755)
+    print("git-scrub: filter and guards installed; run `git scrub check`")
+    return 0
+
+
+def main() -> int:
+    command, rest = (sys.argv[1], sys.argv[2:]) if len(sys.argv) > 1 else ("help", [])
+    if command in ("clean", "smudge"):
+        filter_stream(command)
+        return 0
+    if command == "check":
+        return check("--staged" in rest)
+    if command == "check-message":
+        return check_message(rest[0])
+    if command == "audit":
+        return audit(rest)
+    if command == "pre-push":
+        return pre_push()
+    if command == "install":
+        return install()
+    print(__doc__)
+    return 0 if command in ("help", "-h", "--help") else 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

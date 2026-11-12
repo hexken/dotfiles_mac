@@ -150,7 +150,7 @@ def write_copy(src: Path, entries: list[dict], p: dict) -> tuple[str, str]:
 
 def first_message(dropped: list[str]) -> str:
     items = "; ".join(dropped) or "nothing identifiable"
-    return ("This session was recovered after the corporate proxy blocked a request "
+    return ("This session was recovered after the corporate proxy (Netskope) blocked a request "
             "(403 \"Your IT Admin has blocked this request\"). I cut the blocked content out. "
             f"It was: {items}. Don't repeat those calls or re-read that content into the "
             "conversation; find another way to get what you needed, or ask me. Never read "

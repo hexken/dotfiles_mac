@@ -25,14 +25,7 @@
       "Read(**/*.avif)",
       "Read(**/*.ico)",
       "Read(**/*.pdf)",
-      "Read(**/*.PDF)",
-      "Bash(bkt pr merge)",
-      "Bash(bkt pr merge *)",
-      "Bash(bkt * pr merge*)",
-      "Bash(bkt api *merge*)",
-      "Edit(~/Dev/work/work-repo*/**/tests/acceptance/**)",
-      "Edit(~/Dev/work/work-repo*/**/ci/**)",
-      "Edit(~/Dev/work/work-repo*/**/bitbucket-pipelines.yml)"
+      "Read(**/*.PDF)"
     ],
     "defaultMode": "auto"
   },
@@ -93,12 +86,42 @@
       "effortLevel": "medium"
     },
     "claude-opus-5-5": {
-      "effortLevel": "high"
+      "effortLevel": "medium"
     }
   },
+  "advisorModel": "opus",
   "tui": "fullscreen",
   "theme": "auto",
   "editorMode": "vim",
   "autoCompactEnabled": true,
-  "advisorModel": "fable"
+  "idleCompaction": false,
+  "autoMode": {
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: assume private (not queryable via gh \u2014 org/repo not derivable from the Bitbucket remote; host is ssh.bitbucket.org, no public-visibility signal found)",
+      "**Internal sharing / snippet hosting**: None configured \u2014 treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: None configured",
+      "**Default / protected branches**: main (default branch per repo facts; protection status not queryable via gh for this host)",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: None configured",
+      "**Host containment**: None configured \u2014 assume Claude Code runs on an ordinary developer machine or CI runner with open internet",
+      "**Source control**: The trusted repo (origin at ssh.bitbucket.org:work-org/planning-repo.git) and its remote only \u2014 no additional orgs configured",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: None configured",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material; preserve exact handles when known and share only with audiences cleared at the [named+specifics] bar",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment",
+      "**Protected deployment namespaces / environments**: None configured \u2014 fall back to the Sensitive remote targets heuristic (note: an `eval` k8s namespace was seen in this project's usage, but `eval` is not a prod-marked name, so it is not added here)",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development \u2014 specs/acceptance-test planning workflow (per this repo's CLAUDE.md: DSL-first spec process, plan/ruling discipline, git safety rules)",
+      "**Trusted repo**: /Users/ktjhia/Dev/work/planning-repo (origin: ssh.bitbucket.org:work-org/planning-repo.git), assumed private",
+      "**Org-specific CLIs**: herdr, herdr-name (seen repeatedly in this project's transcripts; used for multi-agent pane naming per ~/.claude/CLAUDE.md)",
+      "routine under /Users/ktjhia/Dev/work/planning-repo/ prefix: git operations are restricted per this repo's CLAUDE.md \u2014 only the explicitly requested git action is authorized (e.g. a commit request does not authorize a push); confirmation is required before push, PR, history rewrite, or worktree removal, with one exception: a single push of the implementation repo's agent branch per batch, once the batch passes, guarded by its pre-push hook"
+    ]
+  }
 }

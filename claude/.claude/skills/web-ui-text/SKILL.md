@@ -1,6 +1,7 @@
 ---
 name: web-ui-text
-description: Inspect, test and debug web UIs without screenshots, via text (accessibility snapshot, Playwright assertions, layout and accessibility checks). Use for any work on a web page or app UI: building it, checking a change, debugging what a page shows, or reviewing layout. Screenshots can't be used on this machine because the Netskope proxy blocks every request carrying an image.
+description: >-
+  Inspect, test and debug web UIs without screenshots, via text (accessibility snapshot, Playwright assertions, layout and accessibility checks). Use for any work on a web page or app UI: building it, checking a change, debugging what a page shows, or reviewing layout. Screenshots can't be used on this machine because the Netskope proxy blocks every request carrying an image.
 allowed-tools: Bash(page-text *)
 ---
 
