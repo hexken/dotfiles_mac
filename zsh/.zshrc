@@ -112,3 +112,7 @@ fi
 
 # Machine/client-specific local overrides (untracked in git)
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
+
+# Java 21 for Akka
+export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+export PATH="$JAVA_HOME/bin:$PATH"
